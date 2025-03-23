@@ -47,7 +47,7 @@ def get_state(current_state, next_obs, action, current_passenger_picked, target_
         state = (
             tar_dir[0], tar_dir[1], 
             passenger_look, destination_look,
-            obstacle_north, obstacle_south, obstacle_east, obstacle_west,
+            obstacle_north, obstacle_south, obstacle_east, obstacle_west, action,
             passenger_picked
         )
        
@@ -57,8 +57,8 @@ targets = []
 current_state = None
 current_passenger_picked = False
 action = -1
-epsilon = 0.0
-min_epsilon = 0.05
+epsilon = 0.00
+max_epsilon = 0.2
 decay_rate = 0.99
 target_counter = 0
 
@@ -78,7 +78,7 @@ def get_action(obs):
     current_state = next_state
     current_obs = obs
     current_passenger_picked = current_state[-1]
-    #epsilon  = max(epsilon * decay_rate, min_epsilon)
+    epsilon  = min(epsilon / decay_rate, max_epsilon)
     return action
 
     
