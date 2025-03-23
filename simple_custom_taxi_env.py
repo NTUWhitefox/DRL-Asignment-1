@@ -14,7 +14,7 @@ import random
 
 
 class SimpleTaxiEnv():
-    def __init__(self, grid_size=5, fuel_limit=50):
+    def __init__(self, grid_size = 5, fuel_limit=50):
         """
         Custom Taxi environment supporting different grid sizes.
         """
@@ -28,25 +28,40 @@ class SimpleTaxiEnv():
        
         self.obstacles = set()  # No obstacles in simple version
         self.destination = None
+    
+
 
     def reset(self):
         """Reset the environment, ensuring Taxi, passenger, and destination are not overlapping obstacles"""
         self.current_fuel = self.fuel_limit
-        self.passenger_picked_up = False
-        
+        self.grid_size = np.random.choice([7,8,9,10])
+        #self.grid_size = np.random.choice([5])
+        self.obstacles = set()
 
+        
         available_positions = [
             (x, y) for x in range(self.grid_size) for y in range(self.grid_size)
-            if (x, y) not in self.stations and (x, y) not in self.obstacles
         ]
 
+        for i in range(4):
+            self.stations[i] = random.choice(available_positions)
+            available_positions.remove(self.stations[i])
+
+        obstacle_size = 8
+        
         self.taxi_pos = random.choice(available_positions)
+        available_positions.remove(self.taxi_pos)
         
         self.passenger_loc = random.choice([pos for pos in self.stations])
-        
+        self.destination = random.choice([pos for pos in self.stations if pos != self.passenger_loc])
         
         possible_destinations = [s for s in self.stations if s != self.passenger_loc]
         self.destination = random.choice(possible_destinations)
+
+        for i in range(obstacle_size):
+            obstacle_pos = random.choice(available_positions)
+            self.obstacles.add(obstacle_pos)
+            available_positions.remove(obstacle_pos)
         
         return self.get_state(), {}
 
@@ -129,29 +144,32 @@ class SimpleTaxiEnv():
         
         state = (taxi_row, taxi_col, self.stations[0][0],self.stations[0][1] ,self.stations[1][0],self.stations[1][1],self.stations[2][0],self.stations[2][1],self.stations[3][0],self.stations[3][1],obstacle_north, obstacle_south, obstacle_east, obstacle_west, passenger_look, destination_look)
         return state
-    def render_env(self, taxi_pos,   action=None, step=None, fuel=None):
+    def render_env(self, taxi_pos,   action=None, step=None, fuel = None):
         clear_output(wait=True)
 
         grid = [['.'] * self.grid_size for _ in range(self.grid_size)]
         
-        '''
+        for obstacle in self.obstacles:
+            grid[obstacle[0]][obstacle[1]] = 'X'
+
+        grid[self.stations[0][0]][self.stations[0][1]] = 'R'
+        grid[self.stations[1][0]][self.stations[1][1]] = 'G'
+        grid[self.stations[2][0]][self.stations[2][1]] = 'Y'
+        grid[self.stations[3][0]][self.stations[3][1]] = 'B'
+
+       
         # Place passenger
-        py, px = passenger_pos
+        py, px = self.passenger_loc
         if 0 <= px < self.grid_size and 0 <= py < self.grid_size:
             grid[py][px] = 'P'
-        '''
         
         
-        grid[0][0]='R'
-        grid[0][4]='G'
-        grid[4][0]='Y'
-        grid[4][4]='B'
-        '''
-        # Place destination
-        dy, dx = destination_pos
+        # Place destinatio
+        dy, dx = self.destination
         if 0 <= dx < self.grid_size and 0 <= dy < self.grid_size:
             grid[dy][dx] = 'D'
-        '''
+
+
         # Place taxi
         ty, tx = taxi_pos
         if 0 <= tx < self.grid_size and 0 <= ty < self.grid_size:
@@ -164,7 +182,7 @@ class SimpleTaxiEnv():
         #print(f"Destination: ({dx}, {dy})")
         print(f"Fuel Left: {fuel}")
         print(f"Last Action: {self.get_action_name(action)}\n")
-
+  
         # Print grid
         for row in grid:
             print(" ".join(row))
@@ -196,11 +214,9 @@ def run_agent(agent_file, env_config, render=False):
         time.sleep(0.5)
     while not done:
         
-        
         action = student_agent.get_action(obs)
-
         obs, reward, done, _ = env.step(action)
-        print('obs=',obs)
+        #print('obs=',obs)
         total_reward += reward
         step_count += 1
 
