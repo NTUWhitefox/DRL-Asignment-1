@@ -58,7 +58,7 @@ current_state = None
 current_passenger_picked = False
 action = -1
 epsilon = 0.00
-max_epsilon = 0.2
+max_epsilon = 0.0
 decay_rate = 0.99
 target_counter = 0
 
@@ -69,7 +69,7 @@ def get_action(obs):
     next_state, _ , reached = get_state(current_state, obs, action, current_passenger_picked, target_counter)
     if reached:
          target_counter = (target_counter + 1) % 4
-    print('state: ', next_state)
+    #print('state: ', next_state)
     if next_state not in Q_table or np.random.rand() < epsilon:
         action = np.random.choice([0,1,2,3])
     else:
